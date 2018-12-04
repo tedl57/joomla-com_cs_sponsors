@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<form>
+  <fieldset>
+    <field name="id" type="text" readonly="true" class="readonly" default="0" description="JGLOBAL_FIELD_ID_DESC"/>
+    <field name="ordering"/>
+    <field name="state" default="1" type="list" label="JSTATUS" description="JFIELD_PUBLISHED_DESC" class="inputbox" size="1">
+      <option value="1">JPUBLISHED</option>
+      <option value="0">JUNPUBLISHED</option>
+      <option value="2">JARCHIVED</option>
+      <option value="-2">JTRASHED</option>
+    </field>
+    <field name="checked_out" type="hidden" filter="unset"/>
+    <field name="checked_out_time" default="0000-00-00 00:00:00" type="hidden" filter="unset"/>
+    <field name="created_by" type="createdby" default="0" label="COM_CS_SPONSORS_FORM_LBL_BUSINESS_CREATED_BY" description="COM_CS_SPONSORS_FORM_DESC_BUSINESS_CREATED_BY" hidden="true" hint="COM_CS_SPONSORS_FORM_LBL_BUSINESS_CREATED_BY"/>
+    <field name="modified_by" type="modifiedby" default="0" label="COM_CS_SPONSORS_FORM_LBL_BUSINESS_MODIFIED_BY" description="COM_CS_SPONSORS_FORM_DESC_BUSINESS_MODIFIED_BY" hidden="true" hint="COM_CS_SPONSORS_FORM_LBL_BUSINESS_MODIFIED_BY"/>
+    <field name="memid" required="true" default="0" label="COM_CS_SPONSORS_FORM_LBL_BUSINESS_MEMID" description="COM_CS_SPONSORS_FORM_DESC_BUSINESS_MEMID" hint="COM_CS_SPONSORS_FORM_LBL_BUSINESS_MEMID"/>
+    <field name="date_added" default="0000-00-00 00:00:00" type="calendar" class="inputbox" format="%Y-%m-%d %H:%M:%S" showtime="true" translateformat="true" label="COM_CS_SPONSORS_FORM_LBL_BUSINESS_DATE_ADDED" description="COM_CS_SPONSORS_FORM_DESC_BUSINESS_DATE_ADDED" hidden="true" hint="COM_CS_SPONSORS_FORM_LBL_BUSINESS_DATE_ADDED"/>
+    <field name="last_updated" default="0000-00-00 00:00:00" type="calendar" class="inputbox" format="%Y-%m-%d %H:%M:%S" showtime="true" translateformat="true" label="COM_CS_SPONSORS_FORM_LBL_BUSINESS_LAST_UPDATED" description="COM_CS_SPONSORS_FORM_DESC_BUSINESS_LAST_UPDATED" hidden="true" hint="COM_CS_SPONSORS_FORM_LBL_BUSINESS_LAST_UPDATED"/>
+    <field name="listing_description" type="editor" buttons="true" class="inputbox" filter="safehtml" required="true" label="COM_CS_SPONSORS_FORM_LBL_BUSINESS_LISTING_DESCRIPTION" description="COM_CS_SPONSORS_FORM_DESC_BUSINESS_LISTING_DESCRIPTION" hint="COM_CS_SPONSORS_FORM_LBL_BUSINESS_LISTING_DESCRIPTION"/>
+    <field name="show_listing" required="true" default="0" label="COM_CS_SPONSORS_FORM_LBL_BUSINESS_SHOW_LISTING" description="COM_CS_SPONSORS_FORM_DESC_BUSINESS_SHOW_LISTING" hint="COM_CS_SPONSORS_FORM_LBL_BUSINESS_SHOW_LISTING"/>
+    <field name="exclude_fields" type="editor" buttons="true" class="inputbox" filter="safehtml" label="COM_CS_SPONSORS_FORM_LBL_BUSINESS_EXCLUDE_FIELDS" description="COM_CS_SPONSORS_FORM_DESC_BUSINESS_EXCLUDE_FIELDS" hint="COM_CS_SPONSORS_FORM_LBL_BUSINESS_EXCLUDE_FIELDS"/>
+    <field name="image_name" type="editor" buttons="true" class="inputbox" filter="safehtml" required="true" label="COM_CS_SPONSORS_FORM_LBL_BUSINESS_IMAGE_NAME" description="COM_CS_SPONSORS_FORM_DESC_BUSINESS_IMAGE_NAME" hint="COM_CS_SPONSORS_FORM_LBL_BUSINESS_IMAGE_NAME"/>
+    <field name="version_note" type="text" label="JGLOBAL_FIELD_VERSION_NOTE_LABEL" description="JGLOBAL_FIELD_VERSION_NOTE_DESC" class="inputbox" size="45" labelclass="control-label"/>
+  </fieldset>
+</form>
