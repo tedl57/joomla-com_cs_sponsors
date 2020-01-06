@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<updates>
+   <update>
+      <name>CS Sponsors</name>
+      <description>CS Sponsors Component</description>
+      <element>com_cs_sponsors</element>
+      <type>component</type>
+      <version>1.0.1</version>
+	  <infourl title="CS Sponsors URL">https://creativespirits.org/products/joomla/com_cs_sponsors-release-notes.html</infourl>
+      <downloads>
+		  <downloadurl type="full" format="zip">https://creativespirits.org/products/joomla/com_cs_sponsors-1.0.1.zip</downloadurl>
+      </downloads>
+      <tags>
+         <tag>some-tag</tag>
+      </tags>
+      <maintainer>Creative Spirits</maintainer>
+      <maintainerurl>https://creativespirits.org</maintainerurl>
+      <section>some-section</section>
+      <targetplatform name="joomla" version="3.[0123456789]" />
+   </update>
+</updates>
