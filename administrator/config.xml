@@ -9,6 +9,24 @@
 			size="50"
 			default="images/site/sponsors"
 		/>
+        <field
+			name="header_colors"
+			type="text"
+			label="Header Color(s)"
+			description="Header color for each level of sponsorship"
+			size="70"
+			default=""
+			hint="Single color or comma-separated list of colors"
+		/>
+        <field
+			name="intro_text"
+			type="textarea"
+			label="Introduction"
+			description="Message shown before the sponsor listings."
+			default=""
+			hint="Introduction text"
+			filter="raw"
+		/>
         
     </fieldset>
 

@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS `#__cs_businesses`;
+--DROP TABLE IF EXISTS `#__cs_businesses`;

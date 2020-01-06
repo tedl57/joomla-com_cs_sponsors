@@ -1,157 +1,242 @@
 <?php
-/**
- * @version    CVS: 1.0.0
- * @package    Com_Cs_sponsors
- * @author     Ted Lowe <lists@creativespirits.org>
+/*
  * @copyright  Creative Spirits (c) 2018
  * @license    GNU General Public License version 2 or later; see LICENSE.txt
  */
 // No direct access
 defined('_JEXEC') or die;
 
-JHtml::addIncludePath(JPATH_COMPONENT . '/helpers/html');
-JHtml::_('bootstrap.tooltip');
-JHtml::_('behavior.multiselect');
-JHtml::_('formbehavior.chosen', 'select');
+echo<<<EOT
+<style>
+h3.header_level {
+	border-bottom: 1px solid;
+	border-top: 1px solid;
+	border-width:thin;
+	padding-bottom: 3px;
+	padding-left: 3px;
+}
+div.item_sep {
+	border-top: 1px solid;
+	padding-top: 7px;
+}
+td.desc_sep {
+	padding-top: 7px;
+	padding-bottom: 7px;
+}
+</style>
 
-$user       = JFactory::getUser();
-$userId     = $user->get('id');
-$listOrder  = $this->state->get('list.ordering');
-$listDirn   = $this->state->get('list.direction');
-$canCreate  = $user->authorise('core.create', 'com_cs_sponsors') && file_exists(JPATH_COMPONENT . DIRECTORY_SEPARATOR . 'models' . DIRECTORY_SEPARATOR . 'forms' . DIRECTORY_SEPARATOR . 'businessform.xml');
-$canEdit    = $user->authorise('core.edit', 'com_cs_sponsors') && file_exists(JPATH_COMPONENT . DIRECTORY_SEPARATOR . 'models' . DIRECTORY_SEPARATOR . 'forms' . DIRECTORY_SEPARATOR . 'businessform.xml');
-$canCheckin = $user->authorise('core.manage', 'com_cs_sponsors');
-$canChange  = $user->authorise('core.edit.state', 'com_cs_sponsors');
-$canDelete  = $user->authorise('core.delete', 'com_cs_sponsors');
-?>
+EOT;
+// todo: do this in a template-independent way
+echo<<<EOT
+<div class="page-header">
+	<h2 itemprop="headline">Sponsors</h2>
+</div>
+EOT;
 
-<form action="<?php echo htmlspecialchars(JUri::getInstance()->toString()); ?>" method="post"
-      name="adminForm" id="adminForm">
+$intro_text = JComponentHelper::getParams('com_cs_sponsors')->get("intro_text",null);
 
-	<?php echo JLayoutHelper::render('default_filter', array('view' => $this), dirname(__FILE__)); ?>
-	<table class="table table-striped" id="businessList">
-		<thead>
-		<tr>
-			<?php if (isset($this->items[0]->state)): ?>
-				
-			<?php endif; ?>
+if ( $intro_text !== null)
+	echo "<p>$intro_text</p>";
 
-							<th class=''>
-				<?php echo JHtml::_('grid.sort',  'COM_CS_SPONSORS_BUSINESSES_ID', 'a.id', $listDirn, $listOrder); ?>
-				</th>
-				<th class=''>
-				<?php echo JHtml::_('grid.sort',  'COM_CS_SPONSORS_BUSINESSES_MEMID', 'a.memid', $listDirn, $listOrder); ?>
-				</th>
-				<th class=''>
-				<?php echo JHtml::_('grid.sort',  'COM_CS_SPONSORS_BUSINESSES_DATE_ADDED', 'a.date_added', $listDirn, $listOrder); ?>
-				</th>
-				<th class=''>
-				<?php echo JHtml::_('grid.sort',  'COM_CS_SPONSORS_BUSINESSES_LISTING_DESCRIPTION', 'a.listing_description', $listDirn, $listOrder); ?>
-				</th>
-				<th class=''>
-				<?php echo JHtml::_('grid.sort',  'COM_CS_SPONSORS_BUSINESSES_SHOW_LISTING', 'a.show_listing', $listDirn, $listOrder); ?>
-				</th>
-				<th class=''>
-				<?php echo JHtml::_('grid.sort',  'COM_CS_SPONSORS_BUSINESSES_EXCLUDE_FIELDS', 'a.exclude_fields', $listDirn, $listOrder); ?>
-				</th>
-				<th class=''>
-				<?php echo JHtml::_('grid.sort',  'COM_CS_SPONSORS_BUSINESSES_IMAGE_NAME', 'a.image_name', $listDirn, $listOrder); ?>
-				</th>
+echo "<div>";
 
+echo showSponsors();
 
-							<?php if ($canEdit || $canDelete): ?>
-					<th class="center">
-				<?php echo JText::_('COM_CS_SPONSORS_BUSINESSES_ACTIONS'); ?>
-				</th>
-				<?php endif; ?>
+echo "</div>";
 
-		</tr>
-		</thead>
-		<tfoot>
-		<tr>
-			<td colspan="<?php echo isset($this->items[0]) ? count(get_object_vars($this->items[0])) : 10; ?>">
-				<?php echo $this->pagination->getListFooter(); ?>
-			</td>
-		</tr>
-		</tfoot>
-		<tbody>
-		<?php foreach ($this->items as $i => $item) : ?>
-			<?php $canEdit = $user->authorise('core.edit', 'com_cs_sponsors'); ?>
+function showSponsors()
+{
+	// headers can be Charter Business Sponsors, Premier Business Sponsors and Business Sponsors 
 
+	$where = "WHERE sponsor_level!=0";
+	$order = "ORDER BY sponsor_level ASC";
+	$sql = "SELECT typ FROM #__cs_members_types $where $order";
+	$db = JFactory::getDBO();
+	$db->setQuery($sql);
+	$typs = $db->loadAssocList();
+
+	$header_colors = JComponentHelper::getParams('com_cs_sponsors')->get("header_colors",null);
+	if ( $header_colors === null)
+		$header_colors =  array("Goldenrod");	// todo: could be a component default
+	else
+	{
+		$ntyps = count($typs);
+		$header_colors = explode(",", $header_colors);
+	}
+	
+	// create arrays of sponsorship level types and their respective header colors
+	// eg, array("Charter Business", "Premier Business", "Business")
+	
+	$levels = array();
+	$nlvl = 0; 	
+	foreach($typs as $typ)
+	{
+		$levels[] = $typ["typ"];
+		
+		// component param for "Gold,Silver,Bronze": Goldenrod,Silver,Palegoldenrod
+		
+		$color = isset( $header_colors[$nlvl]) ? $header_colors[$nlvl] : $header_colors[0];
+		$colors[$typ["typ"]] = $color;
+		$nlvl++;
+	}
+
+	// for each sponsorship level, output a header and the sponsors in the level if any
+	
+	$ret = "";
+	$today = date('Y-m-d');	// outputs: 2018-12-20
+	
+	foreach( $levels as $level )
+	{
+		// find all the paid up active business members in the level
+		
+		$where = "WHERE status='Active' AND memtype='$level' AND paidthru>='$today'";
+		$order = "ORDER BY bname ASC";
+		$sql = "SELECT * FROM #__cs_members $where $order";
+		$db = JFactory::getDBO();
+		$db->setQuery($sql);
+		$sponsors = $db->loadAssocList();
+		
+		if ( count( $sponsors ) == 0 )
+			continue;
+
+		// sponsor listing images are stored in this folder (eg, images/site/sponsors)
+
+		$images_path = JComponentHelper::getParams('com_cs_sponsors')->get("images_path","images");
+		
+		// track the number of sponsors listed in the section to know when to output a level header or separator
+		
+		$nshown_level = 0;
+		
+		foreach( $sponsors as $sponsor )
+		{
+			// find the business member's sponsor listing
 			
-			<tr class="row<?php echo $i % 2; ?>">
+			$memid = $sponsor["id"];
+			$where = "WHERE memid=$memid AND show_listing='1'";
+			$sql = "SELECT * FROM #__cs_businesses $where";
+			$db = JFactory::getDBO();
+			$db->setQuery($sql);
+			$listing = $db->loadAssoc();
+			if ($listing === null)
+				continue;
+		
+			if ( ++$nshown_level == 1)
+			{
+				// output the appropriate level header
 
-				<?php if (isset($this->items[0]->state)) : ?>
-					<?php $class = ($canChange) ? 'active' : 'disabled'; ?>
-					
-				<?php endif; ?>
+				$ret .= "<h3 style='background-color: " . $colors[$level] .";' class='header_level'>$level Sponsors</h3>";
 
-								<td>
+				// first sponsor listed doesn't need a separator
 
-					<?php echo $item->id; ?>
-				</td>
-				<td>
+				$item_class = "";
+			}
+			else 
+			{
+				// separate subsequent listings within a level with a separator
 
-					<?php echo $item->memid; ?>
-				</td>
-				<td>
+				$item_class = " class='item_sep'";
+			}
 
-					<?php echo $item->date_added; ?>
-				</td>
-				<td>
+			// format sponsor listing info from their membership data
+			
+			// sponsor listing information always includes business name
+			$bname = $sponsor["bname"];
 
-					<?php echo $item->listing_description; ?>
-				</td>
-				<td>
+			$info = "<b>$bname</b><br />";
 
-					<?php echo $item->show_listing; ?>
-				</td>
-				<td>
+			// optional contact name with optional title
+			$contact_name = "";
+			if ( (!empty($sponsor["fname"])) && (!empty($sponsor["lname"])))
+			{
+				$mi = $sponsor["mi"];
+				if ( ! empty( $mi ) )
+					$mi .= ". ";
+				
+				$contact_name = $sponsor["fname"] . " $mi" . $sponsor["lname"];
+				if ( ! empty( $sponsor["title"] ) )
+					$contact_name .= ", " . $sponsor["title"];
+				
+				$info .= "$contact_name</br />";
+			}
 
-					<?php echo $item->exclude_fields; ?>
-				</td>
-				<td>
+			// add more member fields to the information listing but exclude those that are unwanted by the sponsor
+			$exclude_fields = explode(',', $listing["exclude_fields"]);
 
-					<?php echo $item->image_name; ?>
-				</td>
+			if ( (!in_array("address",$exclude_fields)) && (!empty($sponsor["address"])) && (!empty($sponsor["city"])) 
+				&& (!empty($sponsor["state"])) && (!empty($sponsor["zip"])))
+				$info .= sprintf("%s<br />%s, %s %s<br />", 
+					$sponsor["address"], $sponsor["city"], $sponsor["state"], $sponsor["zip"] );				
 
+			if ( (!in_array("wphone",$exclude_fields)) && (!empty($sponsor["wphone"])))
+					$info .= sprintf("Phone: %s<br />",
+						$sponsor["wphone"] );
+			
+			if ( (!in_array("cphone",$exclude_fields)) && (!empty($sponsor["cphone"])))
+				$info .= sprintf("Cell: %s<br />",
+					$sponsor["cphone"] );
+		
+			if ( (!in_array("fax",$exclude_fields)) && (!empty($sponsor["fax"])))
+				$info .= sprintf("Fax: %s<br />",
+					$sponsor["fax"] );
+			
+			if ( (!in_array("email",$exclude_fields)) && (!empty($sponsor["email"])))
+				$info .= sprintf("Email: <a href='mailto:%s'>%s</a><br />",
+						$sponsor["email"], $sponsor["email"] );
 
-								<?php if ($canEdit || $canDelete): ?>
-					<td class="center">
-					</td>
-				<?php endif; ?>
+			// build proper website link preserving https:// protocol if present
+			$href = "";
+			if ( (!in_array("website",$exclude_fields)) && (!empty($sponsor["website"])))
+			{
+				$website = $sponsor["website"];
+				if ( strpos($website,"http://") === 0 )
+				{
+					$href = $website;
+					$website = substr($website,7);
+				}
+				else if ( strpos($website,"https://") === 0 )
+				{
+					$href = $website;
+					$website = substr($website,8);	
+				}
+				else
+				{
+					$href = "http://$website";	
+				}
+				
+				$info .= sprintf("Web: <a href='%s' target='_blank'>%s</a><br />",
+						$href, $website );
+			}
 
-			</tr>
-		<?php endforeach; ?>
-		</tbody>
-	</table>
+			// determine if listing image exists
 
-	<?php if ($canCreate) : ?>
-		<a href="<?php echo JRoute::_('index.php?option=com_cs_sponsors&task=businessform.edit&id=0', false, 0); ?>"
-		   class="btn btn-success btn-small"><i
-				class="icon-plus"></i>
-			<?php echo JText::_('COM_CS_SPONSORS_ADD_ITEM'); ?></a>
-	<?php endif; ?>
+			$img = "";
+			if ( !empty($listing["image_name"]))
+			{
+				$img_file = "$images_path/" . $listing["image_name"];
 
-	<input type="hidden" name="task" value=""/>
-	<input type="hidden" name="boxchecked" value="0"/>
-	<input type="hidden" name="filter_order" value="<?php echo $listOrder; ?>"/>
-	<input type="hidden" name="filter_order_Dir" value="<?php echo $listDirn; ?>"/>
-	<?php echo JHtml::_('form.token'); ?>
-</form>
+				if ( file_exists( $img_file ))
+				{
+					if (empty($href))
+						$img = "<img src='/$img_file'>";
+					else
+						$img = "<a target='_blank' href='$href'><img src='/$img_file'></a>";
+				}
+			}
 
-<?php if($canDelete) : ?>
-<script type="text/javascript">
+			$desc = $listing["listing_description"];
 
-	jQuery(document).ready(function () {
-		jQuery('.delete-button').click(deleteItem);
-	});
+			// sponsor listing is formatted in a table with two rows
+			// row 1: info | image
+			// row 2: description
 
-	function deleteItem() {
-
-		if (!confirm("<?php echo JText::_('COM_CS_SPONSORS_DELETE_MESSAGE'); ?>")) {
-			return false;
+			$item_html = "<a name='$memid'></a><table><tr><td>$info</td><td>$img</td></tr><td class='desc_sep' colspan='2'>$desc</td></tr></table>";
+				
+			$ret .= "<div$item_class>$item_html</div>";
 		}
 	}
-</script>
-<?php endif; ?>
+
+	if ( empty( $ret ) )
+		$ret = "<b>Please support our mission by becoming a business sponsor.</b>";
+	
+	return $ret;
+}
